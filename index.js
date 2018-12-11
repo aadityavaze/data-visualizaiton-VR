@@ -1,6 +1,8 @@
 
 
-const Graph = ForceGraph3D({ controlType: 'fly' })
+
+
+const Graph = ForceGraphVR()
       (document.getElementById('3d-graph'))
         .jsonUrl('final.json')
         .d3Force("link", d3.forceLink().distance(d => d.distance))
@@ -22,7 +24,7 @@ const Graph = ForceGraph3D({ controlType: 'fly' })
             opacity: 0.75
           })
         ))*/
- 		.onNodeClick(node => {
+ 		/*.onNodeClick(node => {
           // Aim at node from outside it
           const distance = 40;
           const distRatio = 1 + distance/Math.hypot(node.x, node.y, node.z);
@@ -31,7 +33,7 @@ const Graph = ForceGraph3D({ controlType: 'fly' })
             node, // lookAt ({ x, y, z })
             3000  // ms transition duration
           );
-        })
+        })*/
  		//.cameraPosition({ x:0, y:0, z: 100 })
  		//.d3Force("radial force", d3.forceRadial(100))
  		//.nodeThreeObject(node => {
@@ -42,9 +44,19 @@ const Graph = ForceGraph3D({ controlType: 'fly' })
        // })
  		//.numDimensions(2)
  ;
+
+
 var nodes;
 
+var worldPos;
 
+
+
+
+	function restartForces(){
+		state.d3ForceLayout().restart();
+}	    
+	var t=setInterval(restartForces,10000);
 
 //Defining the Rdial Repulsion Force 
 
@@ -52,7 +64,16 @@ RadialRepulsionForce.initialize = function(_) {
     nodes = _;
   };
 function RadialRepulsionForce(alpha) {
-    
+
+	//Get camera position
+	var cameraEl = document.querySelector('a-entity');
+	worldPos = new THREE.Vector3();
+	worldPos.setFromMatrixPosition(cameraEl.object3D.matrixWorld);
+
+
+	
+
+
     //nodes[0].fixed=true;//nodes[0].x=0;//nodes[0].y=0;
     //viewNode= nodes[nodes.length-1];
     var thetaArray= [];  
@@ -91,12 +112,12 @@ function RadialRepulsionForce(alpha) {
 		if(deltaTheta<0 && deltaZ <= idealDeltaZ) {
 
 
-			var node1Relative = {x: node1.x -Graph.camera().position.x, 
-			y: node1.y-Graph.camera().position.y, z:  node1.z-Graph.camera().position.z};
+			var node1Relative = {x: node1.x -worldPos.x, 
+			y: node1.y-worldPos.y, z:  node1.z-worldPos.z};
 
 
-			var node2Relative = {x: node2.x -Graph.camera().position.x, 
-			y: node2.y-Graph.camera().position.y, z:  node2.z-Graph.camera().position.z};
+			var node2Relative = {x: node2.x -worldPos.x, 
+			y: node2.y-worldPos.y, z:  node2.z-worldPos.z};
 
 
 			var modulusNode1 = Math.sqrt(node1Relative.x*node1Relative.x + 
@@ -130,26 +151,10 @@ function RadialRepulsionForce(alpha) {
 
 		    }
 
-	 //Sorting the angles
-    //thetaArray.sort(function(a,b){return a.theta-b.theta});
-    //var viewPosition = Graph.cameraPosition;
+
 
 	
   }
-console.log(Graph.camera().position);
 
-  //console.log(thetaArray);
     }
-  var photo = getParameterByName('photo');
-	if (photo) {
-		var photosphere = THREE.Photosphere(document.getElementById('sphere'), photo + '.jpg', {
-			view: getParameterByName('view'),
-			speed: getParameterByName('speed'),
-			y: getParameterByName('y')
-		});
-		window.onresize = photosphere.resize;
-	}
-	function getParameterByName(name) {
-		var match = RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
-		return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
-	}
+ 
